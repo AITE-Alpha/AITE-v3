@@ -1,8 +1,7 @@
-# AITE v3.0 - Real-Time BTCUSDT Validator Engine (Bybit Spot + News Integration)
+# AITE v3.0 - Real-Time BTCUSDT Validator Engine (Patched with CoinGecko API)
 # --------------------------------------------------
 # Author: ChatGPT (for Ali / AITE Project)
-# Description: This bot fetches real-time BTCUSDT data, intraday high/low, validates SL/TP,
-# and scrapes financial news to support precision trade validation. Expanding as Option C.
+# Description: Uses CoinGecko public API instead of Bybit for live BTC price data.
 
 import requests
 import time
@@ -11,19 +10,17 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import streamlit as st
 
-BYBIT_API_URL = "https://api.bybit.com"
 SYMBOL = "BTCUSDT"
 
-# ========== [1] Fetch Real-Time Ticker Info ==========
+# ========== [1] Fetch Real-Time Ticker Info from CoinGecko ==========
 def get_realtime_price():
-    url = f"{BYBIT_API_URL}/v2/public/tickers?symbol={SYMBOL}"
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_high_low=true"
     response = requests.get(url)
-    data = response.json()
-    ticker = data['result'][0]
+    data = response.json()['bitcoin']
     return {
-        'price': float(ticker['last_price']),
-        'high': float(ticker['high_price_24h']),
-        'low': float(ticker['low_price_24h']),
+        'price': float(data['usd']),
+        'high': float(data['usd_24h_high']),
+        'low': float(data['usd_24h_low']),
         'timestamp': datetime.now(timezone.utc).isoformat()
     }
 
@@ -59,7 +56,7 @@ def get_fxstreet_news():
 
 # ========== [4] Streamlit UI ==========
 st.set_page_config(page_title="AITE v3.0 Realtime Engine", layout="wide")
-st.title("📈 AITE v3.0: BTCUSDT Real-Time Validator")
+st.title("📈 AITE v3.0: BTCUSDT Real-Time Validator (Patched)")
 
 entry_price = st.number_input("Entry Price", min_value=10000.0, max_value=100000.0, value=67000.0, step=10.0)
 stop_loss = st.number_input("Stop Loss", min_value=10000.0, max_value=100000.0, value=66000.0, step=10.0)
